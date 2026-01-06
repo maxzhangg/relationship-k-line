@@ -1,0 +1,5 @@
+{
+  "name": "Relationship K-Line: Love & Life Visualization",
+  "description": "An AI-powered astrology visualization tool that generates 'Love K-Lines' and 'Dual Life Lines' based on BaZi compatibility, powered by Google Gemini.",
+  "requestFramePermissions": []
+}

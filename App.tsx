@@ -1,0 +1,137 @@
+import React, { useState } from 'react';
+import { InputForm } from './components/InputForm';
+import { LoveKlineChart } from './components/LoveKlineChart';
+import { DualLifeLineChart } from './components/DualLifeLineChart';
+import { SummaryCard } from './components/SummaryCard';
+import { generateAstrologyData } from './services/geminiService';
+import { AnalysisResult, PersonInput } from './types';
+import { Sparkles, Moon, Sun } from 'lucide-react';
+
+export default function App() {
+  const [data, setData] = useState<AnalysisResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAnalyze = async (pA: PersonInput, pB: PersonInput, start: number, end: number, apiKey: string) => {
+    setLoading(true);
+    setError(null);
+    setData(null);
+
+    try {
+      const result = await generateAstrologyData(pA, pB, start, end, apiKey);
+      setData(result);
+    } catch (err: any) {
+      setError(err.message || "An unknown error occurred.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-space-900 text-slate-200 pb-20">
+      
+      {/* Header */}
+      <header className="border-b border-slate-800 bg-space-900/90 sticky top-0 z-50 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+               <Sparkles className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                Relationship K-Line
+              </h1>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">AI Astrology Analytics</p>
+            </div>
+          </div>
+          <div className="flex gap-2 opacity-50">
+            <Sun className="w-4 h-4" />
+            <Moon className="w-4 h-4" />
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        
+        {/* Input Section */}
+        {!data && (
+           <div className="mt-8 animate-fade-in">
+             <div className="text-center mb-10 max-w-2xl mx-auto">
+               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Discover Your Timeline</h2>
+               <p className="text-slate-400">
+                 Enter birth details to generate a <strong>Love K-Line</strong> and <strong>Life Trajectory</strong> analysis powered by advanced BaZi calculations and AI reasoning.
+               </p>
+             </div>
+             <InputForm onSubmit={handleAnalyze} isLoading={loading} />
+             
+             {error && (
+               <div className="mt-6 p-4 bg-red-900/30 border border-red-800/50 text-red-300 rounded-lg text-center max-w-2xl mx-auto">
+                 {error}
+               </div>
+             )}
+           </div>
+        )}
+
+        {/* Loading State */}
+        {loading && !data && (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 border-t-2 border-indigo-500 rounded-full animate-spin"></div>
+              <div className="absolute inset-2 border-r-2 border-purple-500 rounded-full animate-spin reverse" style={{ animationDuration: '1.5s' }}></div>
+              <div className="absolute inset-4 border-b-2 border-pink-500 rounded-full animate-spin" style={{ animationDuration: '3s' }}></div>
+            </div>
+            <p className="mt-6 text-indigo-300 animate-pulse">Calculating Celestial Mechanics...</p>
+          </div>
+        )}
+
+        {/* Results Dashboard */}
+        {data && (
+          <div className="space-y-8 animate-slide-up">
+            
+            {/* Meta & Reset */}
+            <div className="flex justify-between items-end border-b border-slate-800 pb-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Analysis Results</h2>
+                <p className="text-slate-500 text-sm">
+                   For {data.inputEcho.personA.name} & {data.inputEcho.personB.name} • {data.inputEcho.range.startYear}-{data.inputEcho.range.endYear}
+                </p>
+              </div>
+              <button 
+                onClick={() => setData(null)} 
+                className="text-sm text-slate-400 hover:text-white underline decoration-slate-600 underline-offset-4"
+              >
+                Start New Analysis
+              </button>
+            </div>
+
+            {/* Summary */}
+            <SummaryCard overall={data.overall} />
+
+            {/* Page 1: Love K-Line */}
+            <div className="grid lg:grid-cols-3 gap-6">
+               <div className="lg:col-span-3">
+                 <LoveKlineChart data={data.page1LoveKline.series} />
+               </div>
+            </div>
+
+            {/* Page 2: Dual Life Line */}
+            <div className="grid lg:grid-cols-3 gap-6">
+               <div className="lg:col-span-3">
+                 <DualLifeLineChart 
+                    data={data.page2DualLifeLine.series} 
+                    annotations={data.page2DualLifeLine.annotations} 
+                    personAName={data.inputEcho.personA.name}
+                    personBName={data.inputEcho.personB.name}
+                 />
+               </div>
+            </div>
+
+            <div className="text-center text-xs text-slate-600 pt-12 pb-4">
+              {data.meta.note} • Generated: {new Date(data.meta.generatedAt).toLocaleString()}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
