@@ -5,9 +5,11 @@ import { DualLifeLineChart } from './components/DualLifeLineChart';
 import { SummaryCard } from './components/SummaryCard';
 import { generateAstrologyData } from './services/geminiService';
 import { AnalysisResult, PersonInput } from './types';
-import { Sparkles, Moon, Sun } from 'lucide-react';
+import { Sparkles, Languages } from 'lucide-react';
+import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 
-export default function App() {
+const AppContent = () => {
+  const { t, language, setLanguage } = useLanguage();
   const [data, setData] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,17 +20,17 @@ export default function App() {
     setData(null);
 
     try {
-      const result = await generateAstrologyData(pA, pB, start, end, apiKey);
+      const result = await generateAstrologyData(pA, pB, start, end, apiKey, language);
       setData(result);
     } catch (err: any) {
-      setError(err.message || "An unknown error occurred.");
+      setError(err.message || t.errorGeneric);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-space-900 text-slate-200 pb-20">
+    <div className="min-h-screen bg-space-900 text-slate-200 pb-20 font-sans">
       
       {/* Header */}
       <header className="border-b border-slate-800 bg-space-900/90 sticky top-0 z-50 backdrop-blur-md">
@@ -39,14 +41,26 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
-                Relationship K-Line
+                {t.appTitle}
               </h1>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">AI Astrology Analytics</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">{t.appSubtitle}</p>
             </div>
           </div>
-          <div className="flex gap-2 opacity-50">
-            <Sun className="w-4 h-4" />
-            <Moon className="w-4 h-4" />
+          <div className="flex items-center gap-3">
+            <div className="flex bg-slate-800 rounded-lg p-1 border border-slate-700">
+               <button 
+                 onClick={() => setLanguage('en')}
+                 className={`px-3 py-1 text-xs rounded-md transition-all ${language === 'en' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
+               >
+                 EN
+               </button>
+               <button 
+                 onClick={() => setLanguage('zh')}
+                 className={`px-3 py-1 text-xs rounded-md transition-all ${language === 'zh' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white'}`}
+               >
+                 中文
+               </button>
+            </div>
           </div>
         </div>
       </header>
@@ -57,9 +71,9 @@ export default function App() {
         {!data && (
            <div className="mt-8 animate-fade-in">
              <div className="text-center mb-10 max-w-2xl mx-auto">
-               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Discover Your Timeline</h2>
+               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">{t.heroTitle}</h2>
                <p className="text-slate-400">
-                 Enter birth details to generate a <strong>Love K-Line</strong> and <strong>Life Trajectory</strong> analysis powered by advanced BaZi calculations and AI reasoning.
+                 {t.heroDesc}
                </p>
              </div>
              <InputForm onSubmit={handleAnalyze} isLoading={loading} />
@@ -80,7 +94,7 @@ export default function App() {
               <div className="absolute inset-2 border-r-2 border-purple-500 rounded-full animate-spin reverse" style={{ animationDuration: '1.5s' }}></div>
               <div className="absolute inset-4 border-b-2 border-pink-500 rounded-full animate-spin" style={{ animationDuration: '3s' }}></div>
             </div>
-            <p className="mt-6 text-indigo-300 animate-pulse">Calculating Celestial Mechanics...</p>
+            <p className="mt-6 text-indigo-300 animate-pulse">{t.loading}</p>
           </div>
         )}
 
@@ -100,7 +114,7 @@ export default function App() {
                 onClick={() => setData(null)} 
                 className="text-sm text-slate-400 hover:text-white underline decoration-slate-600 underline-offset-4"
               >
-                Start New Analysis
+                {t.startNew}
               </button>
             </div>
 
@@ -137,5 +151,13 @@ export default function App() {
         )}
       </main>
     </div>
+  );
+};
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }

@@ -11,14 +11,9 @@ export const generateAstrologyData = async (
   personB: PersonInput,
   startYear: number,
   endYear: number,
-  userApiKey?: string
+  apiKey: string,
+  language: 'en' | 'zh' // Add language parameter
 ): Promise<AnalysisResult> => {
-  // Prioritize user-provided key, fallback to build-time env var
-  const apiKey = userApiKey || process.env.API_KEY;
-
-  if (!apiKey) {
-    throw new Error("API Key is missing. Please enter your Google Gemini API Key.");
-  }
 
   const ai = new GoogleGenAI({ apiKey });
 
@@ -31,7 +26,7 @@ export const generateAstrologyData = async (
   const baziB = calculateBazi(personB.birth);
 
   const inputJson = {
-    uiLanguage: "en",
+    uiLanguage: language, // Pass language to context
     range: { 
       startYear, 
       endYear,
@@ -50,6 +45,11 @@ export const generateAstrologyData = async (
 
   const fullPrompt = `
 ${SYSTEM_PROMPT}
+
+====================================================
+LANGUAGE INSTRUCTION
+====================================================
+You MUST output all natural language text (summaries, reasons, comments, event titles, details) in ${language === 'zh' ? 'SIMPLIFIED CHINESE (简体中文)' : 'ENGLISH'}.
 
 ====================================================
 USER INPUT DATA

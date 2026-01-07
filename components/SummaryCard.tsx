@@ -1,6 +1,7 @@
 import React from 'react';
 import { Overall, Dimension, PersonInput } from '../types';
 import { Star, AlertTriangle, TrendingUp, Scroll } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Props {
   overall: Overall;
@@ -60,13 +61,14 @@ const BaziCard = ({ person }: { person: PersonInput }) => {
 };
 
 export const SummaryCard: React.FC<Props> = ({ overall, personA, personB }) => {
+  const { t } = useLanguage();
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-6">
         {/* Main Summary */}
         <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
           <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-400" fill="currentColor" /> Cosmic Verdict
+            <Star className="w-5 h-5 text-yellow-400" fill="currentColor" /> {t.cosmicVerdict}
           </h3>
           <p className="text-slate-300 leading-relaxed mb-6 whitespace-pre-line">
             {overall.summary}
@@ -75,7 +77,7 @@ export const SummaryCard: React.FC<Props> = ({ overall, personA, personB }) => {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 bg-emerald-900/20 border border-emerald-900/50 p-3 rounded-lg">
               <div className="flex items-center gap-2 text-emerald-400 text-sm font-bold mb-1">
-                <TrendingUp className="w-4 h-4" /> Golden Years
+                <TrendingUp className="w-4 h-4" /> {t.goldenYears}
               </div>
               <div className="flex gap-2 flex-wrap">
                 {overall.bestYears.map(y => (
@@ -86,7 +88,7 @@ export const SummaryCard: React.FC<Props> = ({ overall, personA, personB }) => {
 
             <div className="flex-1 bg-rose-900/20 border border-rose-900/50 p-3 rounded-lg">
               <div className="flex items-center gap-2 text-rose-400 text-sm font-bold mb-1">
-                <AlertTriangle className="w-4 h-4" /> Challenging Years
+                <AlertTriangle className="w-4 h-4" /> {t.challengingYears}
               </div>
               <div className="flex gap-2 flex-wrap">
                 {overall.riskYears.map(y => (
@@ -100,7 +102,7 @@ export const SummaryCard: React.FC<Props> = ({ overall, personA, personB }) => {
         {/* BaZi Profile Display */}
         <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-             <Scroll className="w-5 h-5 text-indigo-400" /> BaZi Blueprint
+             <Scroll className="w-5 h-5 text-indigo-400" /> {t.baziBlueprint}
            </h3>
            <div className="grid md:grid-cols-2 gap-4">
              <BaziCard person={personA} />
@@ -111,20 +113,20 @@ export const SummaryCard: React.FC<Props> = ({ overall, personA, personB }) => {
 
       {/* Side Dimensions */}
       <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800 h-fit">
-        <h3 className="text-lg font-semibold text-white mb-4">Compatibility Dimensions</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">{t.compDimensions}</h3>
         <div className="space-y-1">
-          <DimensionBar label="Communication" data={overall.dimensions.communication} />
-          <DimensionBar label="Values" data={overall.dimensions.values} />
-          <DimensionBar label="Intimacy" data={overall.dimensions.intimacy} />
-          <DimensionBar label="Stability" data={overall.dimensions.stability} />
-          <DimensionBar label="Family" data={overall.dimensions.family} />
-          <DimensionBar label="Career" data={overall.dimensions.career} />
-          <DimensionBar label="Wealth" data={overall.dimensions.wealth} />
+          <DimensionBar label={t.dim_communication} data={overall.dimensions.communication} />
+          <DimensionBar label={t.dim_values} data={overall.dimensions.values} />
+          <DimensionBar label={t.dim_intimacy} data={overall.dimensions.intimacy} />
+          <DimensionBar label={t.dim_stability} data={overall.dimensions.stability} />
+          <DimensionBar label={t.dim_family} data={overall.dimensions.family} />
+          <DimensionBar label={t.dim_career} data={overall.dimensions.career} />
+          <DimensionBar label={t.dim_wealth} data={overall.dimensions.wealth} />
         </div>
         <div className="mt-6 pt-6 border-t border-slate-800 text-center">
             <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">{overall.summaryScore}</span>
             <span className="text-slate-500 text-sm ml-1">/ 100</span>
-            <p className="text-xs text-slate-400 mt-2 font-medium tracking-wide uppercase">Overall Synergy</p>
+            <p className="text-xs text-slate-400 mt-2 font-medium tracking-wide uppercase">{t.overallSynergy}</p>
         </div>
       </div>
     </div>

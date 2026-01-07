@@ -11,6 +11,7 @@ import {
   Legend
 } from 'recharts';
 import { LifeLinePoint, Annotation } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Props {
   data: LifeLinePoint[];
@@ -20,6 +21,7 @@ interface Props {
 }
 
 const CustomTooltip = ({ active, payload, label, annotations }: any) => {
+  const { t } = useLanguage();
   if (active && payload && payload.length) {
     const year = payload[0].payload.gregorianYear;
     const yearAnnotations = annotations.filter((a: any) => a.gregorianYear === year);
@@ -37,7 +39,9 @@ const CustomTooltip = ({ active, payload, label, annotations }: any) => {
           <div className="mt-3 border-t border-slate-700 pt-2">
              {yearAnnotations.map((a: any, i: number) => (
                <div key={i} className="mb-1">
-                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">{a.who === 'BOTH' ? 'Joint Event' : 'Personal Event'}</span>
+                 <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">
+                    {a.who === 'BOTH' ? t.jointEvent : t.personalEvent}
+                 </span>
                  <p className="font-semibold text-amber-400">{a.title}</p>
                  <p className="opacity-80 leading-tight">{a.detail}</p>
                </div>
@@ -51,6 +55,7 @@ const CustomTooltip = ({ active, payload, label, annotations }: any) => {
 };
 
 export const DualLifeLineChart: React.FC<Props> = ({ data, annotations, personAName, personBName }) => {
+  const { t } = useLanguage();
   // Flatten data for Recharts
   const chartData = data.map(d => ({
     year: d.gregorianYear,
@@ -61,7 +66,7 @@ export const DualLifeLineChart: React.FC<Props> = ({ data, annotations, personAN
 
   return (
     <div className="w-full h-[400px] bg-slate-900/50 rounded-xl p-4 border border-slate-800">
-      <h3 className="text-lg font-semibold text-slate-200 mb-4">Life Trajectory Comparison</h3>
+      <h3 className="text-lg font-semibold text-slate-200 mb-4">{t.lifeLineTitle}</h3>
       
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
@@ -104,10 +109,6 @@ export const DualLifeLineChart: React.FC<Props> = ({ data, annotations, personAN
 
           {/* Render Annotation Dots */}
           {annotations.map((ann, i) => {
-             // Find the data point to attach the dot to. If WHO is BOTH, put it on average or fixed.
-             // Let's put A events on A line, B on B line, BOTH on top or middle? 
-             // Simplest: Put dots on the line corresponding to "who". 
-             // If "BOTH", maybe put a special marker at the top or average.
              const dataPoint = chartData.find(c => c.year === ann.gregorianYear);
              if(!dataPoint) return null;
 
@@ -117,7 +118,7 @@ export const DualLifeLineChart: React.FC<Props> = ({ data, annotations, personAN
              if (ann.who === 'B') {
                return <ReferenceDot key={i} x={ann.gregorianYear} y={dataPoint.scoreB} r={5} fill="#f472b6" stroke="#fff" />;
              }
-             // For Both, maybe mid point?
+             // For Both, mid point
              const mid = (dataPoint.scoreA + dataPoint.scoreB) / 2;
              return <ReferenceDot key={i} x={ann.gregorianYear} y={mid} r={6} fill="#fbbf24" stroke="#fff" shape={(props: any) => (
                 <circle cx={props.cx} cy={props.cy} r={6} fill="#fbbf24" stroke="white" strokeWidth={2} />
