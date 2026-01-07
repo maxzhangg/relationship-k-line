@@ -41,7 +41,7 @@ Instead of vague horoscopes, this application generates a stock-market-style **"
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/your-username/relationship-k-line.git
+    git clone https://github.com/maxzhangg/relationship-k-line.git
     cd relationship-k-line
     ```
 
