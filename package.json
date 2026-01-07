@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://<YOUR_GITHUB_USERNAME>.github.io/<REPO_NAME>",
+  "homepage": "https://maxzhangg.github.io/relationship-k-line/",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -19,6 +19,7 @@
     "recharts": "^2.12.2"
   },
   "devDependencies": {
+    "@types/node": "^20.11.24",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",
     "@vitejs/plugin-react": "^4.2.1",

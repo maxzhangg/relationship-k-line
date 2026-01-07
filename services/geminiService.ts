@@ -21,10 +21,18 @@ export const generateAstrologyData = async (
 
   const ai = new GoogleGenAI({ apiKey });
 
+  // Generate explicit list of years to force the model to output every single one
+  const requiredYears = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
+
   // We explicitly tell the model that Bazi fields are "Calculate" so it knows it must do the work.
   const inputJson = {
     uiLanguage: "en",
-    range: { startYear, endYear },
+    range: { 
+      startYear, 
+      endYear,
+      // Pass the explicit list to the prompt so the model sees exactly what is expected
+      requiredOutputYears: requiredYears 
+    },
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     personA: {
       ...personA,
@@ -52,7 +60,8 @@ ${SYSTEM_PROMPT}
 ====================================================
 USER INPUT DATA
 ====================================================
-Please perform the BaZi and DaYun calculations for the following people and generate the JSON:
+Please perform the BaZi and DaYun calculations for the following people and generate the JSON.
+IMPORTANT: You must generate a data point for EVERY year listed in 'requiredOutputYears'.
 
 ${JSON.stringify(inputJson, null, 2)}
 `;

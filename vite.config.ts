@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    base: './', // Ensures assets are loaded correctly on GitHub Pages
+    base: '/relationship-k-line/', // Set to your repository name
     define: {
       // Critical fix: Use (env.API_KEY || '') to ensure JSON.stringify never receives undefined.
       // This guarantees that 'process.env.API_KEY' is replaced by a string in the browser bundle.

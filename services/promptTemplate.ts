@@ -1,4 +1,5 @@
 
+
 // This template integrates the user's specific BaZi algorithms and Relationship K-Line logic.
 
 export const SYSTEM_PROMPT = `
@@ -45,6 +46,15 @@ In the 'reason' field, you MUST specify:
 - Specific BaZi interactions (e.g., "Mao-You Clash", "Zi-Chou Combine").
 - Real-world implications (e.g., "Financial stress causing arguments", "Travel strengthening bond").
 - Avoid vague statements; be specific to the year's energy.
+
+====================================================
+DATA COMPLETENESS RULE (CRITICAL)
+====================================================
+**YOU MUST GENERATE DATA FOR EVERY SINGLE YEAR LISTED IN 'requiredOutputYears'.**
+- If the input lists 2024, 2025, 2026... up to 2034, your "series" arrays MUST have exactly that many items.
+- **DO NOT SKIP YEARS.**
+- **DO NOT SUMMARIZE** multiple years into one entry.
+- The chart relies on having a data point for every consecutive year.
 
 ====================================================
 OUTPUT JSON STRUCTURE (STRICT)
