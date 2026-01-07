@@ -10,6 +10,21 @@ export const translations = {
     errorGeneric: "An unknown error occurred.",
     startNew: "Start New Analysis",
     
+    // Import
+    haveData: "Already have data?",
+    importLink: "Import JSON",
+    importTitle: "Import Analysis Data",
+    importDesc: "Upload a previously generated 'relationship-k-line' JSON file to restore your analysis.",
+    dropFile: "Drop JSON file here or click to upload",
+    invalidFile: "Invalid file format. Please upload a valid JSON.",
+    importSuccess: "Data loaded successfully!",
+    backHome: "Back to Home",
+
+    // Export
+    export: "Export",
+    saveJson: "Save Data (JSON)",
+    saveReport: "Save Report (MD)",
+
     // Form
     personA: "Person A",
     personB: "Person B",
@@ -70,6 +85,21 @@ export const translations = {
     errorGeneric: "发生了未知错误。",
     startNew: "开始新的分析",
     
+    // Import
+    haveData: "已经有数据？",
+    importLink: "导入数据",
+    importTitle: "导入分析数据",
+    importDesc: "上传之前保存的 JSON 文件以还原分析结果。",
+    dropFile: "将 JSON 文件拖到此处，或点击上传",
+    invalidFile: "文件格式无效，请上传正确的 JSON 文件。",
+    importSuccess: "数据读取成功！",
+    backHome: "返回首页",
+
+    // Export
+    export: "保存结果",
+    saveJson: "下载数据 (JSON)",
+    saveReport: "下载报告 (MD)",
+
     // Form
     personA: "甲方 (Person A)",
     personB: "乙方 (Person B)",
