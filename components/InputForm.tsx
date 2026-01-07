@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PersonInput } from '../types';
-import { Users, Calendar, MapPin, Key, ExternalLink, Info } from 'lucide-react';
+import { Users, Calendar, MapPin, Key, ExternalLink, Info, Globe, Map } from 'lucide-react';
+import { getCountries, getRegions, getCities, WORLD_DATA } from '../services/cityData';
 
 interface Props {
   onSubmit: (pA: PersonInput, pB: PersonInput, start: number, end: number, apiKey: string) => void;
@@ -10,7 +11,16 @@ interface Props {
 const EmptyPerson: PersonInput = {
   name: '',
   gender: 'Male',
-  birth: { date: '', time: '12:00', location: '' }
+  birth: { 
+    date: '', 
+    time: '12:00', 
+    country: 'China', 
+    region: 'Beijing',
+    city: 'Beijing',
+    lat: 39.9042,
+    lon: 116.4074,
+    timezoneOffset: 8
+  }
 };
 
 export const InputForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
@@ -39,107 +49,196 @@ export const InputForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
     const setter = who === 'A' ? setPersonA : setPersonB;
     const current = who === 'A' ? personA : personB;
     
+    // Deep update helper
     if (field.includes('.')) {
-      const [parent, child] = field.split('.');
-      setter({ ...current, [parent]: { ...(current as any)[parent], [child]: val } });
+      const parts = field.split('.');
+      setter(prev => {
+         const newObj = { ...prev };
+         let ptr: any = newObj;
+         for (let i = 0; i < parts.length - 1; i++) {
+            ptr = ptr[parts[i]];
+         }
+         ptr[parts[parts.length - 1]] = val;
+         return newObj;
+      });
     } else {
       setter({ ...current, [field]: val });
     }
   };
 
+  // --- LOCATION HANDLERS ---
+
+  const handleCountryChange = (who: 'A' | 'B', countryName: string) => {
+    const regions = getRegions(countryName);
+    const defaultRegion = regions[0];
+    const defaultCity = defaultRegion ? defaultRegion.cities[0] : null;
+
+    const setter = who === 'A' ? setPersonA : setPersonB;
+    const current = who === 'A' ? personA : personB;
+
+    if (defaultRegion && defaultCity) {
+      setter({
+        ...current,
+        birth: {
+          ...current.birth,
+          country: countryName,
+          region: defaultRegion.name,
+          city: defaultCity.name,
+          lat: defaultCity.lat,
+          lon: defaultCity.lng,
+          timezoneOffset: defaultCity.timezone
+        }
+      });
+    } else {
+      // Fallback if data missing
+      setter({
+        ...current,
+        birth: { ...current.birth, country: countryName, region: '', city: '' }
+      });
+    }
+  };
+
+  const handleRegionChange = (who: 'A' | 'B', countryName: string, regionName: string) => {
+    const cities = getCities(countryName, regionName);
+    const defaultCity = cities[0];
+
+    const setter = who === 'A' ? setPersonA : setPersonB;
+    const current = who === 'A' ? personA : personB;
+
+    if (defaultCity) {
+      setter({
+        ...current,
+        birth: {
+          ...current.birth,
+          country: countryName,
+          region: regionName,
+          city: defaultCity.name,
+          lat: defaultCity.lat,
+          lon: defaultCity.lng,
+          timezoneOffset: defaultCity.timezone
+        }
+      });
+    }
+  };
+
+  const handleCityChange = (who: 'A' | 'B', countryName: string, regionName: string, cityName: string) => {
+    const cities = getCities(countryName, regionName);
+    const cityData = cities.find(c => c.name === cityName);
+
+    if (cityData) {
+      const setter = who === 'A' ? setPersonA : setPersonB;
+      const current = who === 'A' ? personA : personB;
+      setter({
+        ...current,
+        birth: {
+          ...current.birth,
+          city: cityData.name,
+          lat: cityData.lat,
+          lon: cityData.lng,
+          timezoneOffset: cityData.timezone
+        }
+      });
+    }
+  };
+
+  const renderPersonInputs = (person: PersonInput, who: 'A' | 'B', label: string, colorClass: string) => (
+    <div className="space-y-4">
+      <h3 className={`text-lg font-semibold ${colorClass} flex items-center gap-2`}>
+        <Users className="w-5 h-5" /> {label}
+      </h3>
+      
+      <input 
+        type="text" placeholder="Name" required
+        value={person.name}
+        onChange={e => updatePerson(who, 'name', e.target.value)}
+        className={`w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white outline-none focus:ring-2 ${who==='A' ? 'focus:ring-sky-500' : 'focus:ring-pink-500'}`}
+      />
+      
+      <select 
+        value={person.gender}
+        onChange={e => updatePerson(who, 'gender', e.target.value)}
+        className={`w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white outline-none focus:ring-2 ${who==='A' ? 'focus:ring-sky-500' : 'focus:ring-pink-500'}`}
+      >
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+
+      <div className="flex gap-2">
+        <div className="relative w-2/3">
+           <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+           <input 
+             type="date" required
+             value={person.birth.date}
+             onChange={e => updatePerson(who, 'birth.date', e.target.value)}
+             className={`w-full bg-slate-800 border-slate-700 rounded pl-10 px-3 py-2 text-white outline-none focus:ring-2 ${who==='A' ? 'focus:ring-sky-500' : 'focus:ring-pink-500'}`}
+           />
+        </div>
+        <div className="w-1/3">
+           <input 
+             type="time" required
+             value={person.birth.time}
+             onChange={e => updatePerson(who, 'birth.time', e.target.value)}
+             className={`w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white outline-none focus:ring-2 ${who==='A' ? 'focus:ring-sky-500' : 'focus:ring-pink-500'}`}
+           />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {/* Country */}
+        <div className="relative">
+           <Globe className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+           <select
+             value={person.birth.country}
+             onChange={e => handleCountryChange(who, e.target.value)}
+             className={`w-full bg-slate-800 border-slate-700 rounded pl-10 px-3 py-2 text-white appearance-none outline-none focus:ring-2 ${who==='A' ? 'focus:ring-sky-500' : 'focus:ring-pink-500'}`}
+           >
+             {getCountries().map(c => (
+               <option key={c} value={c}>{c}</option>
+             ))}
+           </select>
+        </div>
+
+        {/* Region (Province/State) */}
+        <div className="relative">
+           <Map className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+           <select
+             value={person.birth.region}
+             onChange={e => handleRegionChange(who, person.birth.country, e.target.value)}
+             className={`w-full bg-slate-800 border-slate-700 rounded pl-10 px-3 py-2 text-white appearance-none outline-none focus:ring-2 ${who==='A' ? 'focus:ring-sky-500' : 'focus:ring-pink-500'}`}
+           >
+             {getRegions(person.birth.country).map(r => (
+               <option key={r.name} value={r.name}>{r.name}</option>
+             ))}
+           </select>
+        </div>
+
+        {/* City */}
+        <div className="relative">
+           <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
+           <select
+             value={person.birth.city}
+             onChange={e => handleCityChange(who, person.birth.country, person.birth.region, e.target.value)}
+             className={`w-full bg-slate-800 border-slate-700 rounded pl-10 px-3 py-2 text-white appearance-none outline-none focus:ring-2 ${who==='A' ? 'focus:ring-sky-500' : 'focus:ring-pink-500'}`}
+           >
+             {getCities(person.birth.country, person.birth.region).map(c => (
+               <option key={c.name} value={c.name}>{c.name}</option>
+             ))}
+           </select>
+        </div>
+      </div>
+      
+      <div className="text-[10px] text-slate-500 text-right">
+        Zone: UTC{person.birth.timezoneOffset && person.birth.timezoneOffset >= 0 ? '+' : ''}{person.birth.timezoneOffset}
+      </div>
+    </div>
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8 bg-slate-900/80 p-6 md:p-8 rounded-2xl border border-slate-800 shadow-2xl backdrop-blur-sm max-w-4xl mx-auto">
       
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Person A */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-sky-400 flex items-center gap-2">
-            <Users className="w-5 h-5" /> Person A
-          </h3>
-          <input 
-            type="text" placeholder="Name" required
-            value={personA.name}
-            onChange={e => updatePerson('A', 'name', e.target.value)}
-            className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-sky-500 outline-none"
-          />
-          <select 
-            value={personA.gender}
-            onChange={e => updatePerson('A', 'gender', e.target.value)}
-            className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-sky-500 outline-none"
-          >
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-          <div className="flex gap-2">
-            <input 
-              type="date" required
-              value={personA.birth.date}
-              onChange={e => updatePerson('A', 'birth.date', e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-sky-500 outline-none"
-            />
-            <input 
-              type="time" required
-              value={personA.birth.time}
-              onChange={e => updatePerson('A', 'birth.time', e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-sky-500 outline-none"
-            />
-          </div>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
-            <input 
-              type="text" placeholder="Birth City (e.g. New York)" required
-              value={personA.birth.location}
-              onChange={e => updatePerson('A', 'birth.location', e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 rounded pl-10 px-3 py-2 text-white focus:ring-2 focus:ring-sky-500 outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Person B */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-pink-400 flex items-center gap-2">
-            <Users className="w-5 h-5" /> Person B
-          </h3>
-          <input 
-            type="text" placeholder="Name" required
-            value={personB.name}
-            onChange={e => updatePerson('B', 'name', e.target.value)}
-            className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-pink-500 outline-none"
-          />
-          <select 
-            value={personB.gender}
-            onChange={e => updatePerson('B', 'gender', e.target.value)}
-            className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-pink-500 outline-none"
-          >
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-          <div className="flex gap-2">
-            <input 
-              type="date" required
-              value={personB.birth.date}
-              onChange={e => updatePerson('B', 'birth.date', e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-pink-500 outline-none"
-            />
-            <input 
-              type="time" required
-              value={personB.birth.time}
-              onChange={e => updatePerson('B', 'birth.time', e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 rounded px-3 py-2 text-white focus:ring-2 focus:ring-pink-500 outline-none"
-            />
-          </div>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-2.5 w-4 h-4 text-slate-500" />
-            <input 
-              type="text" placeholder="Birth City (e.g. London)" required
-              value={personB.birth.location}
-              onChange={e => updatePerson('B', 'birth.location', e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 rounded pl-10 px-3 py-2 text-white focus:ring-2 focus:ring-pink-500 outline-none"
-            />
-          </div>
-        </div>
+        {renderPersonInputs(personA, 'A', 'Person A', 'text-sky-400')}
+        {renderPersonInputs(personB, 'B', 'Person B', 'text-pink-400')}
       </div>
 
       <div className="pt-6 border-t border-slate-800 grid grid-cols-2 gap-4">

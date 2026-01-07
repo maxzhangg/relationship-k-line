@@ -2,10 +2,12 @@
 export interface BirthDetails {
   date: string;
   time: string;
-  location: string;
+  country: string;
+  region: string; // State or Province
+  city: string;
   lat?: number;
   lon?: number;
-  timezone?: string;
+  timezoneOffset?: number; // UTC offset in hours (e.g. 8.0)
 }
 
 export interface Bazi {
@@ -13,6 +15,7 @@ export interface Bazi {
   monthPillar: string;
   dayPillar: string;
   hourPillar: string;
+  dayMasterElement?: string;
 }
 
 export interface PersonInput {

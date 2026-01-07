@@ -105,7 +105,11 @@ export default function App() {
             </div>
 
             {/* Summary */}
-            <SummaryCard overall={data.overall} />
+            <SummaryCard 
+              overall={data.overall} 
+              personA={data.inputEcho.personA} 
+              personB={data.inputEcho.personB} 
+            />
 
             {/* Page 1: Love K-Line */}
             <div className="grid lg:grid-cols-3 gap-6">

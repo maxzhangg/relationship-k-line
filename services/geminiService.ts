@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import { PersonInput, AnalysisResult } from '../types';
 import { SYSTEM_PROMPT } from './promptTemplate';
+import { calculateBazi } from './baziCalculator';
 
 // Helper function to pause execution
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -24,33 +25,26 @@ export const generateAstrologyData = async (
   // Generate explicit list of years to force the model to output every single one
   const requiredYears = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
 
-  // We explicitly tell the model that Bazi fields are "Calculate" so it knows it must do the work.
+  // PRE-CALCULATE BAZI IN FRONTEND
+  // We pass the full birth object (including lat/lon/timezone) to the calculator
+  const baziA = calculateBazi(personA.birth);
+  const baziB = calculateBazi(personB.birth);
+
   const inputJson = {
     uiLanguage: "en",
     range: { 
       startYear, 
       endYear,
-      // Pass the explicit list to the prompt so the model sees exactly what is expected
       requiredOutputYears: requiredYears 
     },
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     personA: {
       ...personA,
-      bazi: {
-        yearPillar: "Calculate",
-        monthPillar: "Calculate",
-        dayPillar: "Calculate",
-        hourPillar: "Calculate"
-      }
+      bazi: baziA // Pass calculated BaZi
     },
     personB: {
       ...personB,
-      bazi: {
-        yearPillar: "Calculate",
-        monthPillar: "Calculate",
-        dayPillar: "Calculate",
-        hourPillar: "Calculate"
-      }
+      bazi: baziB // Pass calculated BaZi
     }
   };
 
@@ -60,8 +54,10 @@ ${SYSTEM_PROMPT}
 ====================================================
 USER INPUT DATA
 ====================================================
-Please perform the BaZi and DaYun calculations for the following people and generate the JSON.
-IMPORTANT: You must generate a data point for EVERY year listed in 'requiredOutputYears'.
+IMPORTANT: 
+1. The BaZi (Four Pillars) have already been calculated and provided in the input JSON below. USE THEM.
+2. You must generate a data point for EVERY year listed in 'requiredOutputYears'.
+3. You MUST use the names "${personA.name}" and "${personB.name}" in all your analysis text. Do NOT use "Person A" or "Person B".
 
 ${JSON.stringify(inputJson, null, 2)}
 `;
